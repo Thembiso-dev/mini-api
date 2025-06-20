@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Manager</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    input, button { padding: 0.5rem; margin-right: 5px; }
+    ul { padding-left: 1rem; }
+    li { margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Task Manager</h1>
+
+  <input type="text" id="taskInput" placeholder="Enter a task" />
+  <button onclick="addTask()">Add</button>
+
+  <h2>Tasks</h2>
+  <ul id="taskList"></ul>
+
+  <script>
+    const baseUrl = "http://localhost:3000/tasks";
+
+    async function fetchTasks() {
+      const res = await fetch(baseUrl);
+      const tasks = await res.json();
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+
+      tasks.forEach(task => {
+        const li = document.createElement("li");
+
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = task.title;
+
+        const input = document.createElement("input");
+        input.value = task.title;
+        input.style.display = "none";
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "✏️ Edit";
+        editBtn.onclick = () => {
+          titleSpan.style.display = "none";
+          input.style.display = "inline-block";
+          saveBtn.style.display = "inline-block";
+          editBtn.style.display = "none";
+        };
+
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "💾 Save";
+        saveBtn.style.display = "none";
+        saveBtn.onclick = () => updateTask(task.id, input.value);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "❌";
+        deleteBtn.onclick = () => deleteTask(task.id);
+
+        li.appendChild(titleSpan);
+        li.appendChild(input);
+        li.appendChild(editBtn);
+        li.appendChild(saveBtn);
+        li.appendChild(deleteBtn);
+
+        list.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const input = document.getElementById("taskInput");
+      const title = input.value.trim();
+      if (!title) return;
+      await fetch(baseUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title })
+      });
+      input.value = "";
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${baseUrl}/${id}`, { method: "DELETE" });
+      fetchTasks();
+    }
+
+    async function updateTask(id, newTitle) {
+      if (!newTitle.trim()) return;
+      await fetch(`${baseUrl}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle })
+      });
+      fetchTasks();
+    }
+
+    fetchTasks();
+  </script>
+</body>
+</html>
