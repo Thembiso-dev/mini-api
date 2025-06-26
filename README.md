@@ -14,4 +14,7 @@ Simple task manager API built with Node.js and Express
 ```bash
 npm install
 node index.js
-
+## how to push
+git add.
+git commit -m "message"
+git push origin main
